@@ -1,5 +1,6 @@
 import socket, select, sys
- 
+from collections import deque
+
 #Function to broadcast chat messages to all connected clients
 def broadcast_data (sock, message):
     #Do not send the message to master socket and the client who has send us the message
@@ -34,7 +35,7 @@ if __name__ == "__main__":
     PORT = int(sys.argv[1])
    
     # Chat history
-    hist = ''
+    histq = deque([], 100)
 
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     # this has no effect, why ?
@@ -60,7 +61,7 @@ if __name__ == "__main__":
                 print "Client (%s, %s) connected" % addr
                  
                 broadcast_data(sockfd, "\n[%s:%s] entered room\n" % addr)
-                send_data(sockfd, hist)
+                send_data(sockfd, ''.join(histq))
 
             #Some incoming message from a client
             else:
@@ -71,7 +72,7 @@ if __name__ == "__main__":
                     data = sock.recv(RECV_BUFFER)
                     if data:
 			msg = "\r" + '<' + str(sock.getpeername()) + '> ' + data
-			hist += msg
+                        histq.append(msg)
                         broadcast_data(sock, msg)                
                  
                 except:
