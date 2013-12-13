@@ -1,4 +1,4 @@
-import socket, select, sys
+import socket, select, sys, pickle, atexit
 from collections import deque
 
 #Function to broadcast chat messages to all connected clients
@@ -23,8 +23,15 @@ def send_data(sock, message):
                 socket.close()
                 CONNECTION_LIST.remove(socket) 
 
-if __name__ == "__main__":
+# Persist chat object
+def persist_chat():
+    print 'Saving chat history to file'
+    try:
+        pickle.dump(hist, open('hist.p', 'w'))
+    except IOError:
+        pass
 
+if __name__ == "__main__":
     if(len(sys.argv) < 2) :
         print 'Usage : python server.py  port'
         sys.exit()
@@ -34,8 +41,13 @@ if __name__ == "__main__":
     RECV_BUFFER = 4096 # Advisable to keep it as an exponent of 2
     PORT = int(sys.argv[1])
    
-    # Chat history
-    histq = deque([], 100)
+    # Init chat history
+    hist = []
+    try:
+        hist = pickle.load(open('hist.p', 'r'))
+    except EOFError, IOError:
+	pass
+    hist = deque(hist, 100)
 
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     # this has no effect, why ?
@@ -47,6 +59,9 @@ if __name__ == "__main__":
     CONNECTION_LIST.append(server_socket)
  
     print "Chat server started on port " + str(PORT)
+
+    # Handle script exit
+    atexit.register(persist_chat)
  
     while 1:
         # Get the list sockets which are ready to be read through select
@@ -61,7 +76,7 @@ if __name__ == "__main__":
                 print "Client (%s, %s) connected" % addr
                  
                 broadcast_data(sockfd, "\n[%s:%s] entered room\n" % addr)
-                send_data(sockfd, ''.join(histq))
+                send_data(sockfd, ''.join(hist))
 
             #Some incoming message from a client
             else:
@@ -72,7 +87,7 @@ if __name__ == "__main__":
                     data = sock.recv(RECV_BUFFER)
                     if data:
 			msg = "\r" + '<' + str(sock.getpeername()) + '> ' + data
-                        histq.append(msg)
+                        hist.append(msg)
                         broadcast_data(sock, msg)                
                  
                 except:
