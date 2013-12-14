@@ -38,6 +38,7 @@ if __name__ == "__main__":
      
     # List to keep track of socket descriptors
     CONNECTION_LIST = []
+    PEERNAME_DICT = {}
     RECV_BUFFER = 4096 # Advisable to keep it as an exponent of 2
     PORT = int(sys.argv[1])
    
@@ -46,7 +47,7 @@ if __name__ == "__main__":
     try:
         hist = pickle.load(open('hist.p', 'r'))
     except EOFError, IOError:
-	pass
+	    pass
     hist = deque(hist, 100)
 
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -73,8 +74,11 @@ if __name__ == "__main__":
                 # Handle the case in which there is a new connection recieved through server_socket
                 sockfd, addr = server_socket.accept()
                 CONNECTION_LIST.append(sockfd)
+
+                # Set the default peername for this client
+                PEERNAME_DICT[sockfd] = str(sockfd.getpeername())
+
                 print "Client (%s, %s) connected" % addr
-                 
                 broadcast_data(sockfd, "\n[%s:%s] entered room\n" % addr)
                 send_data(sockfd, ''.join(hist))
 
@@ -85,8 +89,19 @@ if __name__ == "__main__":
                     #In Windows, sometimes when a TCP program closes abruptly,
                     # a "Connection reset by peer" exception will be thrown
                     data = sock.recv(RECV_BUFFER)
-                    if data:
-			msg = "\r" + '<' + str(sock.getpeername()) + '> ' + data
+
+                    # data is new nickname
+                    if data.startswith('/nick'):
+                        new_nick = str(data.split(' ')[1]).rstrip()
+                        old_nick = PEERNAME_DICT[sock]
+                        PEERNAME_DICT[sock] = new_nick
+                        print "Client (%s, %s) nick changed" % addr
+                        msg = "\nClient %s changed nickname to %s\n" % (old_nick, new_nick)
+                        broadcast_data(sock, msg)
+
+                    # data is a chat message
+                    else:
+                        msg = "\r" + '<' + PEERNAME_DICT[sock] + '> ' + data
                         hist.append(msg)
                         broadcast_data(sock, msg)                
                  
@@ -95,6 +110,7 @@ if __name__ == "__main__":
                     print "Client (%s, %s) is offline" % addr
                     sock.close()
                     CONNECTION_LIST.remove(sock)
+                    del PEERNAME_DICT[sock]
                     continue
      
     server_socket.close()
