@@ -84,7 +84,6 @@ if __name__ == "__main__":
 
             #Some incoming message from a client
             else:
-                # Data recieved from client, process it
                 try:
                     #In Windows, sometimes when a TCP program closes abruptly,
                     # a "Connection reset by peer" exception will be thrown
@@ -95,16 +94,32 @@ if __name__ == "__main__":
                         new_nick = str(data.split(' ')[1]).rstrip()
                         old_nick = PEERNAME_DICT[sock]
                         PEERNAME_DICT[sock] = new_nick
-                        print "Client (%s, %s) nick changed" % addr
                         msg = "\nClient %s changed nickname to %s\n" % (old_nick, new_nick)
                         broadcast_data(sock, msg)
+
+                    # data is a me request
+                    elif data.startswith('/me'):
+                        msg = '\n' + PEERNAME_DICT[sock] + data.split("/me",1)[1]
+                        hist.append(msg)
+                        broadcast_data(sock, msg)                
+
+                    # data is a names request
+                    elif data.startswith('/names'):
+                        msg = '\n'.join([p for s, p in PEERNAME_DICT.items()])
+                        msg = '\n' + msg + '\n'
+                        send_data(sock, msg)
+
+                    # data is a ping request
+                    elif data.startswith('/ping'):
+                        msg = '\n' + 'pong!' + '\n'
+                        send_data(sock, msg)
 
                     # data is a chat message
                     else:
                         msg = "\r" + '<' + PEERNAME_DICT[sock] + '> ' + data
                         hist.append(msg)
-                        broadcast_data(sock, msg)                
-                 
+                        broadcast_data(sock, msg)
+                                     
                 except:
                     broadcast_data(sock, "Client (%s, %s) is offline\n" % addr)
                     print "Client (%s, %s) is offline" % addr
