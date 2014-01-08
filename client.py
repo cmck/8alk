@@ -46,9 +46,9 @@ if __name__ == "__main__":
                     print '\nDisconnected from chat server'
                     sys.exit()
                 else :
-                    sys.stdout.write('\a')
                     sys.stdout.flush()
                     sys.stdout.write(data)
+                    sys.stdout.write('\a')
                     prompt()
              
             #user entered a message

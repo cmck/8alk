@@ -46,7 +46,7 @@ if __name__ == "__main__":
     hist = []
     try:
         hist = pickle.load(open('hist.p', 'r'))
-    except EOFError, IOError:
+    except (EOFError, IOError):
 	    pass
     hist = deque(hist, 100)
 
