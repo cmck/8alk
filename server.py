@@ -11,7 +11,7 @@ def broadcast_data (sock, message):
             except :
                 # broken socket connection may be, chat client pressed ctrl+c for example
                 socket.close()
-                CONNECTION_LIST.remove(socket)
+                if socket in CONNNECTION_LIST: CONNECTION_LIST.remove(socket)
 
 # Send data to client
 def send_data(sock, message):
@@ -21,7 +21,7 @@ def send_data(sock, message):
                 socket.send(message)
             except :
                 socket.close()
-                CONNECTION_LIST.remove(socket) 
+                if socket in CONNECTION_LIST: CONNECTION_LIST.remove(socket) 
 
 # Persist chat object
 def persist_chat():
@@ -88,7 +88,7 @@ if __name__ == "__main__":
                     #In Windows, sometimes when a TCP program closes abruptly,
                     # a "Connection reset by peer" exception will be thrown
                     data = sock.recv(RECV_BUFFER)
-
+                    
                     # data is new nickname
                     if data.startswith('/nick'):
                         new_nick = str(data.split(' ')[1]).rstrip()
@@ -124,8 +124,8 @@ if __name__ == "__main__":
                     broadcast_data(sock, "Client (%s, %s) is offline\n" % addr)
                     print "Client (%s, %s) is offline" % addr
                     sock.close()
-                    CONNECTION_LIST.remove(sock)
-                    del PEERNAME_DICT[sock]
+                    if sock in CONNECTION_LIST: CONNECTION_LIST.remove(sock)
+                    if sock in PEERNAME_DICT: del PEERNAME_DICT[sock]
                     continue
      
     server_socket.close()

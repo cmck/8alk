@@ -20,12 +20,12 @@ if __name__ == "__main__":
     s.settimeout(2)
 
     # connect to remote host
-    try :
+    try:
         s.connect((host, port))
-    except :
+    except:
         print 'Unable to connect'
         sys.exit()
-    
+
     # set the nickname
     s.send("/nick " + nick)
 
@@ -42,10 +42,10 @@ if __name__ == "__main__":
             #incoming message from remote server
             if sock == s:
                 data = sock.recv(4096)
-                if not data :
+                if not data:
                     print '\nDisconnected from chat server'
                     sys.exit()
-                else :
+                else:
                     sys.stdout.flush()
                     sys.stdout.write(data)
                     sys.stdout.write('\a')
