@@ -1,4 +1,4 @@
-import socket, select, string, sys
+import socket, select, string, sys, subprocess
  
 def prompt() :
     nick_display = "<%s> " % nick
@@ -46,9 +46,10 @@ if __name__ == "__main__":
                     print '\nDisconnected from chat server'
                     sys.exit()
                 else:
-                    sys.stdout.flush()
-                    sys.stdout.write(data)
-                    sys.stdout.write('\a')
+                    print data
+		    sys.stdout.write(data)
+                    audio_file = "/Users/clark/projects/8alk/sound/mario_thunder.mp3"
+                    rtn = subprocess.call(["afplay", audio_file])
                     prompt()
              
             #user entered a message

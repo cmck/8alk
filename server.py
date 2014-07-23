@@ -11,7 +11,7 @@ def broadcast_data (sock, message):
             except :
                 # broken socket connection may be, chat client pressed ctrl+c for example
                 socket.close()
-                if socket in CONNNECTION_LIST: CONNECTION_LIST.remove(socket)
+                if socket in CONNECTION_LIST: CONNECTION_LIST.remove(socket)
 
 # Send data to client
 def send_data(sock, message):
@@ -123,9 +123,9 @@ if __name__ == "__main__":
                 except:
                     broadcast_data(sock, "Client (%s, %s) is offline\n" % addr)
                     print "Client (%s, %s) is offline" % addr
-                    sock.close()
+		    sock.close()
                     if sock in CONNECTION_LIST: CONNECTION_LIST.remove(sock)
                     if sock in PEERNAME_DICT: del PEERNAME_DICT[sock]
                     continue
      
-    server_socket.close()
+server_socket.close()
